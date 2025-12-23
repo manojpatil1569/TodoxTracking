@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Routine Tracker</title>
+  <link rel="stylesheet" href="style.css">
+<meta name="theme-color" content="#667eea">
+
+</head>
+<body>
+
+<div class="app">
+  <h1>Daily Routine Tracker</h1>
+  <p id="date"></p>
+  <p id="streak"></p>
+
+  <div class="controls">
+    <input id="taskInput" placeholder="New task">
+    <button id="addBtn">Add</button>
+    <button id="darkBtn">🌙</button>
+  </div>
+
+  <ul id="taskList"></ul>
+
+  <div class="progress-container">
+    <div id="progress-bar"></div>
+  </div>
+  <p id="progressText"></p>
+
+  <canvas id="chart" height="120"></canvas>
+  <p id="conclusion"></p>
+
+  <button id="resetBtn">Reset Day</button>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
