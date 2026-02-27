@@ -3,38 +3,316 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Routine Tracker</title>
+  <title>RoutineOS — Daily Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#0d1117">
   <link rel="stylesheet" href="style.css">
-<meta name="theme-color" content="#667eea">
-
 </head>
 <body>
 
-<div class="app">
-  <h1>Daily Routine Tracker</h1>
-  <p id="date"></p>
-  <p id="streak"></p>
-
-  <div class="controls">
-    <input id="taskInput" placeholder="New task">
-    <button id="addBtn">Add</button>
-    <button id="darkBtn">🌙</button>
-  </div>
-
-  <ul id="taskList"></ul>
-
-  <div class="progress-container">
-    <div id="progress-bar"></div>
-  </div>
-  <p id="progressText"></p>
-
-  <canvas id="chart" height="120"></canvas>
-  <p id="conclusion"></p>
-
-  <button id="resetBtn">Reset Day</button>
+<!-- Animated Background -->
+<div class="bg-canvas">
+  <canvas id="bgCanvas"></canvas>
 </div>
 
-<script src="script.js"></script>
+<!-- App Shell -->
+<div class="shell">
 
+  <!-- Sidebar Nav -->
+  <nav class="sidebar">
+    <div class="logo">ROS</div>
+    <div class="nav-items">
+      <button class="nav-btn active" data-section="dashboard" title="Dashboard">
+        <span class="nav-icon">⬡</span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button class="nav-btn" data-section="tasks" title="Tasks">
+        <span class="nav-icon">◈</span>
+        <span class="nav-label">Tasks</span>
+      </button>
+      <button class="nav-btn" data-section="habits" title="Habits">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Habits</span>
+      </button>
+      <button class="nav-btn" data-section="reminders" title="Reminders">
+        <span class="nav-icon">◎</span>
+        <span class="nav-label">Reminders</span>
+      </button>
+      <button class="nav-btn" data-section="insights" title="Insights">
+        <span class="nav-icon">◇</span>
+        <span class="nav-label">Insights</span>
+      </button>
+      <button class="nav-btn" data-section="motivation" title="Motivation">
+        <span class="nav-icon">✦</span>
+        <span class="nav-label">Motivation</span>
+      </button>
+    </div>
+    <button class="dark-toggle" id="darkBtn" title="Toggle theme">☽</button>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="content">
+
+    <!-- ═══════════════ DASHBOARD ═══════════════ -->
+    <section class="section active" id="sec-dashboard">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Good <span id="greeting"></span> 👋</h2>
+          <p class="section-sub" id="fullDate"></p>
+        </div>
+        <div class="streak-pill">🔥 <span id="streakNum">0</span> day streak</div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Tasks Done</div>
+          <div class="stat-value" id="dash-tasksDone">0/0</div>
+          <div class="stat-bar"><div class="stat-bar-fill" id="dash-taskBar"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Habits Today</div>
+          <div class="stat-value" id="dash-habitsDone">0/0</div>
+          <div class="stat-bar"><div class="stat-bar-fill" id="dash-habitBar"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Best Streak</div>
+          <div class="stat-value" id="dash-bestStreak">0</div>
+          <div class="stat-mini">days</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Score</div>
+          <div class="stat-value" id="dash-avgScore">0%</div>
+          <div class="stat-mini">last 7 days</div>
+        </div>
+      </div>
+
+      <!-- Today's Motivation -->
+      <div class="motive-banner" id="dashMotivation">
+        <span class="motive-icon">✦</span>
+        <p class="motive-text"></p>
+      </div>
+
+      <!-- Quick Tasks Preview -->
+      <div class="card">
+        <div class="card-head">
+          <span>Today's Tasks</span>
+          <button class="link-btn" data-goto="tasks">View all →</button>
+        </div>
+        <div id="dash-taskPreview"></div>
+        <div class="progress-row">
+          <div class="prog-track"><div class="prog-fill" id="dash-prog"></div></div>
+          <span class="prog-label" id="dash-progLabel">0%</span>
+        </div>
+      </div>
+
+      <!-- Upcoming Reminders -->
+      <div class="card">
+        <div class="card-head">
+          <span>Upcoming Reminders</span>
+          <button class="link-btn" data-goto="reminders">Manage →</button>
+        </div>
+        <div id="dash-reminders"></div>
+      </div>
+
+      <!-- Weak Areas -->
+      <div class="card">
+        <div class="card-head"><span>⚠ Weak Areas</span></div>
+        <div id="dash-weakAreas"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ TASKS ═══════════════ -->
+    <section class="section" id="sec-tasks">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Tasks</h2>
+          <p class="section-sub">Manage your daily to-dos with time tracking</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="input-row">
+          <input id="taskInput" placeholder="Task name…" class="field">
+          <input id="taskTime" type="time" class="field field-sm" title="Due time">
+          <select id="taskPriority" class="field field-sm">
+            <option value="low">🟢 Low</option>
+            <option value="med" selected>🟡 Med</option>
+            <option value="high">🔴 High</option>
+          </select>
+          <input id="taskDuration" type="number" min="5" step="5" placeholder="min" class="field field-xs" title="Estimated duration (minutes)">
+          <button class="btn-primary" id="addTaskBtn">Add</button>
+        </div>
+      </div>
+
+      <!-- Filter -->
+      <div class="filter-row">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="pending">Pending</button>
+        <button class="filter-btn" data-filter="done">Done</button>
+        <button class="filter-btn" data-filter="high">🔴 High</button>
+      </div>
+
+      <div id="taskList" class="task-list"></div>
+
+      <div class="progress-row" style="margin-top:12px">
+        <div class="prog-track"><div class="prog-fill" id="task-prog"></div></div>
+        <span class="prog-label" id="task-progLabel">0/0</span>
+      </div>
+
+      <button class="btn-ghost" id="resetBtn" style="margin-top:10px;width:100%">↺ Reset All Tasks</button>
+    </section>
+
+    <!-- ═══════════════ HABITS ═══════════════ -->
+    <section class="section" id="sec-habits">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Habits</h2>
+          <p class="section-sub">Build consistency, one day at a time</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="input-row">
+          <input id="habitInput" placeholder="Habit name…" class="field">
+          <select id="habitCategory" class="field field-sm">
+            <option value="health">💪 Health</option>
+            <option value="mind">🧠 Mind</option>
+            <option value="work">💼 Work</option>
+            <option value="social">🤝 Social</option>
+          </select>
+          <select id="habitTarget" class="field field-sm">
+            <option value="daily">Daily</option>
+            <option value="weekdays">Weekdays</option>
+            <option value="weekends">Weekends</option>
+          </select>
+          <button class="btn-primary" id="addHabitBtn">Add</button>
+        </div>
+      </div>
+
+      <div id="habitList" class="habit-list"></div>
+    </section>
+
+    <!-- ═══════════════ REMINDERS ═══════════════ -->
+    <section class="section" id="sec-reminders">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Reminders</h2>
+          <p class="section-sub">Never miss an important task</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="input-row">
+          <input id="reminderText" placeholder="What to remind you about…" class="field">
+          <input id="reminderTime" type="time" class="field field-sm">
+          <select id="reminderRepeat" class="field field-sm">
+            <option value="once">Once</option>
+            <option value="daily">Daily</option>
+            <option value="weekdays">Weekdays</option>
+          </select>
+          <button class="btn-primary" id="addReminderBtn">Set</button>
+        </div>
+      </div>
+
+      <div id="reminderList" class="reminder-list"></div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-head"><span>🔔 Notification Permission</span></div>
+        <p class="hint-text" id="notifStatus">Click below to enable browser notifications for reminders.</p>
+        <button class="btn-secondary" id="notifBtn">Enable Notifications</button>
+      </div>
+    </section>
+
+    <!-- ═══════════════ INSIGHTS ═══════════════ -->
+    <section class="section" id="sec-insights">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Insights</h2>
+          <p class="section-sub">Deep dive into your performance</p>
+        </div>
+      </div>
+
+      <!-- Task Completion Chart -->
+      <div class="card">
+        <div class="card-head"><span>📊 Task Completion — Last 7 Days</span></div>
+        <canvas id="taskChart" height="160"></canvas>
+        <p id="conclusion" class="insight-conclusion"></p>
+      </div>
+
+      <!-- Habit Completion Chart -->
+      <div class="card">
+        <div class="card-head"><span>🔄 Habit Consistency</span></div>
+        <canvas id="habitChart" height="140"></canvas>
+      </div>
+
+      <!-- Time Management -->
+      <div class="card">
+        <div class="card-head"><span>⏱ Time Management</span></div>
+        <div id="timeInsights"></div>
+      </div>
+
+      <!-- Weak Areas -->
+      <div class="card">
+        <div class="card-head"><span>⚠ Weak Areas & Recommendations</span></div>
+        <div id="weakAreas"></div>
+      </div>
+
+      <!-- Productivity Heatmap -->
+      <div class="card">
+        <div class="card-head"><span>🗓 30-Day Heatmap</span></div>
+        <div id="heatmap" class="heatmap"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ MOTIVATION ═══════════════ -->
+    <section class="section" id="sec-motivation">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Daily Motivation</h2>
+          <p class="section-sub">Fuel your momentum</p>
+        </div>
+      </div>
+
+      <div class="motive-hero">
+        <div class="motive-hero-icon">✦</div>
+        <p class="motive-hero-quote" id="heroQuote"></p>
+        <p class="motive-hero-author" id="heroAuthor"></p>
+        <button class="btn-primary" id="newQuoteBtn">New Quote ↻</button>
+      </div>
+
+      <!-- Personal Goals -->
+      <div class="card">
+        <div class="card-head"><span>🎯 Personal Goals</span></div>
+        <div class="input-row">
+          <input id="goalInput" placeholder="Set a goal…" class="field">
+          <input id="goalDeadline" type="date" class="field field-sm">
+          <button class="btn-primary" id="addGoalBtn">Add</button>
+        </div>
+        <div id="goalList" style="margin-top:12px"></div>
+      </div>
+
+      <!-- Affirmations -->
+      <div class="card">
+        <div class="card-head"><span>💬 Daily Affirmation</span></div>
+        <div class="affirmation-box" id="affirmationBox"></div>
+        <button class="btn-secondary" id="newAffirmBtn" style="margin-top:10px">Refresh ↻</button>
+      </div>
+
+      <!-- Streak Milestones -->
+      <div class="card">
+        <div class="card-head"><span>🏆 Streak Milestones</span></div>
+        <div id="milestones" class="milestones"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Notification Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
 </body>
 </html>
